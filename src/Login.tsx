@@ -16,7 +16,7 @@ const Login= ()=>{
 
     if(inputValue.email==='rehan' && inputValue.password==='rehan') 
     {
-        
+     console.log("LOGIN")
      return;
     }
     setErrors('Invalid Username password')
@@ -25,7 +25,6 @@ const Login= ()=>{
 
   function onInputChange(e:React.ChangeEvent<HTMLInputElement>):void{
     e.preventDefault()
-    console.log(e.target.name)
       setInputValue({
         ...inputValue,
         [e.target.name]:e.target.value
