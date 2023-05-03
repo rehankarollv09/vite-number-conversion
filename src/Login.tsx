@@ -14,7 +14,7 @@ const Login= ()=>{
        return;
     }
 
-    if(inputValue.email==='rehan' && inputValue.password==='rehan') 
+  if(inputValue.email==='rehan' && inputValue.password==='rehan') 
     {
      console.log("LOGIN")
      return;
