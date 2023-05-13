@@ -1,49 +1,68 @@
-import { render, fireEvent } from "@testing-library/react";
-import Login from '../../Login'
-
+import { render, fireEvent, act, waitFor } from "@testing-library/react";
+import Login from "../../container/Login/Login";
+import { signIn } from "../../container/Login/utils";
+import '@testing-library/jest-dom';
+import { BrowserRouter } from 'react-router-dom';
+jest.mock("../../container/Login/utils");
 describe("Login component", () => {
+  afterEach(()=>{
+    jest.resetAllMocks();
+  })
   it("displays error message when required fields are not filled in", () => {
-    const { getByText,getByPlaceholderText } = render(<Login />);
+    const { getByText, getByTestId } = render(<BrowserRouter><Login /></BrowserRouter>);
 
-    const emailInput = getByPlaceholderText("email");
-    const passwordInput = getByPlaceholderText("password");
-    const submitButton = getByText("Login");
+    const emailInput = getByTestId("username");
+    const passwordInput = getByTestId("password");
+    const submitButton = getByTestId("login");
 
     fireEvent.change(emailInput, { target: { value: "" } });
     fireEvent.change(passwordInput, { target: { value: "" } });
     fireEvent.click(submitButton);
 
-    expect(getByText("Please enter compulsory fields")).toBeInTheDocument();
+    expect(getByText("Enter Required Field")).toBeInTheDocument();
   });
 
-  it("displays error message when incorrect credentials are entered", () => {
+  it("displays error message when incorrect credentials are entered", async () => {
+    const mockSignIn = jest.fn();
+    mockSignIn.mockReturnValue({ error: "Invalid Credentials", });
+    (signIn as any).mockImplementation(mockSignIn);
+    
+      const { getByTestId,getByText } = render(<BrowserRouter><Login /></BrowserRouter>);
 
-    const { getByText, getByPlaceholderText } = render(<Login />);
+      const emailInput = getByTestId("username");
+      const passwordInput = getByTestId("password");
+      const submitButton = getByTestId("login");
+     await act(async() => {
+      fireEvent.change(emailInput, { target: { value: "testuser" } });
+      fireEvent.change(passwordInput, { target: { value: "testpassword" } });
+      await fireEvent.click(submitButton);
+    });
 
-    const emailInput = getByPlaceholderText("email");
-    const passwordInput = getByPlaceholderText("password");
-    const submitButton = getByText("Login");
-
-    fireEvent.change(emailInput, { target: { value: "wrong" } });
-    fireEvent.change(passwordInput, { target: { value: "wrong" } });
-    fireEvent.click(submitButton);
-
-    expect(getByText("Invalid Username password")).toBeInTheDocument();
+    await waitFor(()=>expect(getByText("Invalid Credentials")).toBeInTheDocument());
   });
 
-  it("logs in when correct credentials are entered", () => {
-    const consoleSpy = jest.spyOn(console, 'log');
+  it("logs in when correct credentials are entered", async() => {
+    
 
-    const { getByText, getByPlaceholderText } = render(<Login />);
+    const mockSignIn = jest.fn();
+    mockSignIn.mockReturnValue({ status:200,data:{id:'90',token:'faketoken'} });
+    (signIn as any).mockImplementation(mockSignIn);
+    
+      const { getByTestId } = render(<BrowserRouter><Login /></BrowserRouter>);
 
-    const emailInput = getByPlaceholderText("email");
-    const passwordInput = getByPlaceholderText("password");
-    const submitButton = getByText("Login");
+      const emailInput = getByTestId("username");
+      const passwordInput = getByTestId("password");
+      const submitButton = getByTestId("login");
+     await act(async() => {
+      fireEvent.change(emailInput, { target: { value: "testuser" } });
+      fireEvent.change(passwordInput, { target: { value: "testpassword" } });
+      await fireEvent.click(submitButton);
+    });
 
-    fireEvent.change(emailInput, { target: { value: "rehan" } });
-    fireEvent.change(passwordInput, { target: { value: "rehan" } });
-    fireEvent.click(submitButton);
-    expect(consoleSpy).toHaveBeenCalled();
-    expect(consoleSpy).toHaveBeenCalledWith('login'.toUpperCase())
+    
+    await waitFor(()=>{
+      expect((emailInput as any).value).toBe('')
+      expect((passwordInput as any).value).toBe('')
+    });
   });
 });
